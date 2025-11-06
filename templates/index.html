@@ -1,0 +1,418 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Fake News Detector</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #3f51b5;
+            --primary-dark: #303f9f;
+            --primary-light: #c5cae9;
+            --accent-color: #ff4081;
+            --real-color: #4caf50;
+            --fake-color: #f44336;
+            --warning-color: #ff9800;
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --divider-color: #bdbdbd;
+            --background-color: #f5f5f5;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        h1 {
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        h2 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-weight: 400;
+        }
+        
+        .description {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 12px;
+            border: 1px solid var(--divider-color);
+            border-radius: 4px;
+            box-sizing: border-box;
+            margin-bottom: 1rem;
+            resize: vertical;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: border 0.3s ease;
+        }
+        
+        textarea:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-analyze {
+            background-color: var(--accent-color);
+        }
+        
+        .btn-analyze:hover {
+            background-color: #e91e63;
+        }
+        
+        .btn-sample {
+            background-color: var(--primary-light);
+            color: var(--text-primary);
+        }
+        
+        .btn-sample:hover {
+            background-color: #b3b3cc;
+        }
+        
+        .btn-clear {
+            background-color: #f5f5f5;
+            color: var(--text-primary);
+        }
+        
+        .btn-clear:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .sample-buttons {
+            margin-bottom: 1.5rem;
+        }
+        
+        .result {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            border-radius: 8px;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .real {
+            background-color: rgba(76, 175, 80, 0.1);
+            border-left: 5px solid var(--real-color);
+        }
+        
+        .fake {
+            background-color: rgba(244, 67, 54, 0.1);
+            border-left: 5px solid var(--fake-color);
+        }
+        
+        .error {
+            background-color: rgba(255, 152, 0, 0.1);
+            border-left: 5px solid var(--warning-color);
+        }
+        
+        .result-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .result-icon {
+            font-size: 2rem;
+            margin-right: 1rem;
+        }
+        
+        .result-title {
+            font-size: 1.5rem;
+            font-weight: 500;
+        }
+        
+        .result-content {
+            margin-bottom: 1rem;
+        }
+        
+        .confidence-meter {
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+        
+        .confidence-value {
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+        
+        .real .confidence-value {
+            background-color: var(--real-color);
+        }
+        
+        .fake .confidence-value {
+            background-color: var(--fake-color);
+        }
+        
+        .loader {
+            display: none;
+            text-align: center;
+            margin: 2rem 0;
+        }
+        
+        .loader-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 1rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 2rem;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+            
+            .card {
+                padding: 1.5rem;
+            }
+            
+            .btn {
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Fake News Detector</h1>
+    </div>
+    
+    <div class="container">
+        {% if not model_status %}
+        <div class="card">
+            <div class="result error" style="display: block;">
+                <div class="result-header">
+                    <div class="result-icon">⚠️</div>
+                    <div class="result-title">Warning</div>
+                </div>
+                <div class="result-content">
+                    <p>Model not loaded. Please run the training script first:</p>
+                    <code>python train_model.py</code>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="card">
+            <h2>Analyze News Articles</h2>
+            <p class="description">Enter a news article to check if it's real or fake. Our AI model will analyze the text and provide a prediction.</p>
+            
+            <div class="sample-buttons">
+                <h3>Try with sample texts:</h3>
+                <button class="btn btn-sample" onclick="loadSample('real')">Real News Example</button>
+                <button class="btn btn-sample" onclick="loadSample('fake')">Fake News Example</button>
+                <button class="btn btn-clear" onclick="clearText()">Clear</button>
+            </div>
+            
+            <textarea id="newsText" placeholder="Paste news article text here or select a sample above..."></textarea>
+            <button class="btn btn-analyze" onclick="predictNews()">Analyze Text</button>
+            
+            <div class="loader" id="loader">
+                <div class="loader-spinner"></div>
+                <p>Analyzing text...</p>
+            </div>
+            
+            <div class="result" id="result">
+                <div class="result-header">
+                    <div class="result-icon" id="result-icon"></div>
+                    <div class="result-title" id="result-title"></div>
+                </div>
+                <div class="result-content">
+                    <p><strong>Prediction:</strong> <span id="prediction"></span></p>
+                    <p><strong>Confidence:</strong> <span id="confidence"></span>%</p>
+                    <div class="confidence-meter">
+                        <div class="confidence-value" id="confidence-bar"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>Fake News Detector | Powered by Machine Learning</p>
+    </div>
+
+    <script>
+        // Sample texts
+        const samples = {
+            real: "Scientists discover new species in Amazon rainforest after extensive research. The team of biologists spent three years documenting the previously unknown species of amphibian, which has unique adaptations to its environment.",
+            fake: "Breaking: Celebrity secretly an alien, sources close to family reveal shocking truth. Government officials have been covering up the star's extraterrestrial origins for decades, according to leaked documents."
+        };
+        
+        function loadSample(type) {
+            document.getElementById('newsText').value = samples[type];
+        }
+        
+        function clearText() {
+            document.getElementById('newsText').value = '';
+            document.getElementById('result').style.display = 'none';
+        }
+        
+        function predictNews() {
+            const newsText = document.getElementById('newsText').value.trim();
+            
+            if (!newsText) {
+                showResult('Please enter some text to analyze', 'error');
+                return;
+            }
+            
+            // Show loader
+            document.getElementById('loader').style.display = 'block';
+            document.getElementById('result').style.display = 'none';
+            
+            // Send request to the server
+            fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ text: newsText }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Hide loader
+                document.getElementById('loader').style.display = 'none';
+                
+                if (data.error) {
+                    showError(data.error);
+                } else {
+                    showPrediction(data);
+                }
+            })
+            .catch(error => {
+                document.getElementById('loader').style.display = 'none';
+                showError('Error: ' + error.message);
+            });
+        }
+        
+        function showPrediction(data) {
+            const resultDiv = document.getElementById('result');
+            const confidencePercent = (data.confidence * 100).toFixed(2);
+            
+            // Set prediction text
+            document.getElementById('prediction').textContent = data.prediction_text;
+            document.getElementById('confidence').textContent = confidencePercent;
+            
+            // Set confidence bar width
+            document.getElementById('confidence-bar').style.width = confidencePercent + '%';
+            
+            // Set result type (real or fake)
+            const isFake = data.prediction === 1;
+            resultDiv.className = 'result ' + (isFake ? 'fake' : 'real');
+            
+            // Set icon and title
+            document.getElementById('result-icon').innerHTML = isFake ? '❌' : '✅';
+            document.getElementById('result-title').textContent = isFake ? 'Fake News Detected' : 'Real News Detected';
+            
+            resultDiv.style.display = 'block';
+        }
+        
+        function showError(message) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = 'result error';
+            
+            document.getElementById('result-icon').innerHTML = '⚠️';
+            document.getElementById('result-title').textContent = 'Error';
+            
+            const resultContent = document.querySelector('.result-content');
+            resultContent.innerHTML = `<p>${message}</p>`;
+            
+            resultDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
+            
