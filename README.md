@@ -101,3 +101,9 @@ This application uses Natural Language Processing (NLP) and machine learning to 
 2. **Feature Extraction**: Converting text to numerical features using TF-IDF
 3. **Classification**: Using machine learning algorithms to predict authenticity
 4. **Evaluation**: Measuring performance with accuracy, precision, recall, and F1-score
+
+### Installation
+
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/Srinivaskeerthi/Fake_News_Detector 
